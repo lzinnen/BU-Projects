@@ -1,0 +1,255 @@
+%% LyX 2.1.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+
+
+\documentclass[english]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2960}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{LastRevised=Tuesday, September 26, 2017 17:36:57}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+
+\input{tcilatex}
+
+\begin{document}
+
+\begin{verbatim}
+TO:        Robert G. King
+FROM:      Luke Zinnen
+DATE:      September 25 2017
+SUBJECT:   Sunspot process and dynamic programming
+\end{verbatim}
+
+\section*{Bank run sunspots and DP formulation}
+
+In determining the behavior of the bank run/financial accelerator model it
+is necessary to define a process for assigning what banks are subject to a
+run in each period, and incorporating that process into the dynamic
+programming problems the bankers and households solve.
+
+I propose three potential methods to handle this addition, which may roughly
+be distinguished by the combination of aggregate and indiosyncratic
+components to the sunspot shocks.
+
+Fundamental productivity shocks are considered to be handled identically
+across the methods that follow.
+
+\subsection{Purely Idiosyncratic}
+
+In this formulation, a bank-household pair has a fundamental state vector
+(Kb, RD, g, Z) of the quantity of capital operated by banks, the deposits
+owed to the household (inclusive of interest), the household's holdings of
+the risk free asset,\textbf{\ and local and aggregate productivity: single
+state?}. \textit{No, or not exactly; that was an implicit merging of the two
+notationally, but with independent driving processes. Knowing the resulting
+composite level of productivity would not, in general, be sufficient to know
+the distribution of the composite in future periods. 
+Keeping it as a single term was meant (in the paper and here) to keep the
+notation a little more compact.}
+
+Given the aggregate state, a recovery ratio $X^{i}\in \lbrack 0,1]$ exists
+in the event of a run. \ \textbf{The sunspot?} \textit{Strictly speaking, in
+all states regardless of the outcome, it's just uninteresting most of the time, 
+where X=1. X<1 if: there is a fundamental bank failure or if the sunspot 
+occurs.} $\xi ^{i}\sim U(0,1)$ is
+drawn, and if $X^{i}<\xi ^{i}$ the bank experiences a run. Additionally, if
+any pairs exist for which, though the recovery ratio is positive, the bank
+cannot repay deposits owed even in the absence of a run sunspot (bank
+failure is fundamental), that pair experiences a run. \ \textbf{It will be
+interesting to see how frequent it is, as it might not be an equilibrium
+outcome depending on the risk tolerances of various agents and the range of
+fundamental shocks. } \textit{As a fundamental I would expect it to be fairly
+rare unless the underlying productivity processes have high variance and/or
+persistence. And even then, that should induce risk-limiting behaviors.}
+
+Thus the states are fully defined by (Kb, RD, g, Z, br), and agents can
+optimize their choices of Kb, RD, and g subject to the known current state
+and the productivity transition process, as well as the probability of a
+bank run occuring in each (Kb, RD, g, Z) combination.
+
+This method generates a degree of symmetry across fundamental states, in
+that for all states where a run could occur some pairs will experience one,
+and the fraction that do is decreasing in the fundamental strength of the
+banks. \textbf{Are you using some form of LLN\ reasoning here? }%
+\textit{LLN in assuming a continuum of pairs, and some ceteris paribus
+in that it's more directly about choosing potential leverage levels given the same 
+productivity states rather than actual leverage given an entering state. 
+Higher expected returns on the asset lead to higher leverage and, other
+things equal, lower risk of default, so that muddies the issue over all states.}
+Additionally, it has the benefit that (assuming the idiosyncratic shock is
+IID, which I find desirable because it keeps more focus on stresses arising
+from fundamentals) the state space is increased as little as possible
+relative to GK. However, this comes at the cost of there never actually
+being (for a large number of pairs) larger or smaller runs, given a
+fundamental state, defined as a full distribution of endogenous state
+variables and productivities.
+
+\subsection{Purely Aggregate}
+
+The same fundamental state vector applies when the sunspot is purely
+aggregate. However, an economywide bank run sunspot $\xi^{agg}$ is added,
+which is necessary for determining the recovery ratio. $X^{i}\in[0,1]$ is
+now a function of (Kb, RD, g, Z, $\xi^{agg}$). Given this state, a bank is
+similarly subject to a run if $X^{i}<$$\xi^{agg}$, as well as if in the
+state a failure is fundamental.
+
+Thus the states are fully defined by (Kb, RD, g, Z, $\xi^{agg}$), though for
+computational purposes finding an equilibrium will require a bank run/no-run
+state as well, and agents can optimize their choices of Kb, RD, and g
+subject to the known current state (Z, $\xi^{agg}$) and the productivity and
+sunspot transition processes with known transition probabilities.
+
+This method has the ability to generate different combinations of bank runs
+depending on the sunspot that arises. As a result it can also demonstrate
+the potential for nonlinear responses to sunspots of varying severities, as
+an increasingly severe sunspot can have a direct effect of pushing some
+banks into the run region, and pull in more due to effects on the price of
+the risk free asset and capital. The downsides are the addition of a new
+state variable (assuming $\xi ^{agg}$ to be Markov rather than IID, as this
+must be more directly and precisely observable by agents in the economy and
+would do less to drive cross sectional variation independent of fundamentals
+than would be the case with a Markov idiosyncratic sunspot shock), and that
+all banks of a given fundamental strength will stand or fall together, which
+may be counterfactual and in any case eliminates confidence in individual
+banks as a factor.
+
+\textbf{I think it is fine to make }$\xi ^{agg}$\textbf{\ into a Markov
+process, but do not really see why having an aggregate shock requires Markov
+dynamics or why these could not have been introduced in the setup above. \
+It certainly is one way to have "expected bank runs."}
+
+\textit{I agree. I think Markov is a good option for persistence in household
+confidence, but there's no reason a different discrete process, or even IID,
+couldn't be used}
+
+\subsection{Combination Aggregate and Idiosyncratic}
+
+The states are the same as in the purely aggregate case, but an
+idiosyncratic shock $\xi ^{i}$ is once again present (for example as a
+zero-mean triangular or normal distribution). While the recovery ratio $%
+X^{i}\in \lbrack 0,1]$ is still a function of (Kb, RD, g, Z, $\xi ^{agg}$),
+banks now run if $X^{i}<$$\xi ^{agg}$+$\xi ^{i}$ (if neither survival nor
+failure is a fundamental outcome). \ Don't \ understand this last statement.
+
+Agents' optimization is similar to the purely aggregate method, but they now
+incorporate probabilities of both bank failure and survival in each
+(fundamentals, aggregate sunspot) state, rather than knowing with certainty
+one outcome or the other would obtain.
+
+This method offers the richest set of outcomes, allowing for broad or narrow
+runs with the same fundamental state vector, while at the same time allowing
+for similarly situated banks to fail or survive depending on differences in
+local expectations. As in both of the previous cases, the \textbf{%
+probability of bank failure} decreases as the fundamentals of the bank
+become stronger. \textbf{As you move forward with this work, I think that it
+is useful to think about the forecasting implications of the various models
+that you are developing and plan to develop. \ So you would want to be
+precsie about the conditioning infromation and even the sort of regressions
+that \ might be used for predicting bank failure.} The same nonlinear run
+effect as in the purely aggregate case would be expected to obtain. The
+state space is effectively no larger than the purely aggregate sunspot case
+given the same assumptions as above about the respective sunspot shocks.
+
+\section*{Dynamic programming problems (combination)}
+
+Letting that ratio $\frac{V_{t}}{n_{t}}\equiv\psi_{t}$, the bank's problem
+becomes
+
+\begin{equation*}
+\begin{split}
+\psi_{t}^{i}=\max_{\phi_{t}^{i}}E_{t}\left\{
+\beta\left(1-\sigma+\sigma\psi_{t+1}^{i}\right)\left[%
+(R_{t+1}^{b,i}-R_{t+1}^{i})\phi_{t}^{i}+R_{t+1}^{i}\right]\right\} \\
+=\max_{\phi_{t}^{i}}E_{t}\left\{ \mu_{t}^{i}\phi_{t}^{i}+\nu_{t}^{i}\right\}
+\end{split}
+\end{equation*}
+
+with the reframed incentive constraint
+
+\begin{equation}
+\theta\phi_{t}^{i}\leq(=)\psi_{t}^{i}=\mu_{t}^{i}\phi_{t}^{i}+\nu_{t}^{i}
+\end{equation}
+
+where
+
+\begin{equation*}
+R_{t+1}^{b,i}=\frac{(Z_{t+1}^{i}+Q_{t+1}^{i})}{Q_{t}^{i}} 
+\end{equation*}
+
+Then with the combined aggregate-idiosyncratic productivity process $\varPsi$
+and aggregate sunspot process $\varXi$ the maximization can be written in a
+discrete form as
+
+\begin{eqnarray*}
+\psi _{t}^{i} &=&\max_{\phi _{t}^{i}}\sum_{Z^{\prime },\xi agg^{\prime },\xi
+i^{\prime }}\left( p(Z^{\prime agg^{\prime }},\xi ^{i^{\prime }}|Z,\xi
+^{agg^{\prime }},\xi ^{i})\right)  \\
+&&\left\{ \beta \left( 1-\sigma +\sigma \psi _{t+1}^{i}\left( S^{\prime
+},\phi \right) \right) \left[ (R_{t+1}^{b,i}\left( S^{\prime },\phi \right)
+-R_{t+1}^{i})\phi _{t}^{i}+R_{t+1}^{i}\right] \right\} 
+\end{eqnarray*}
+
+where for any state-shock combination resulting in a run the state value is
+simply 0 and S' is the external state including the global distribution of
+bank and household positions and the new shocks. The summation over the
+idiosyncratic sunspot shocks may be collapsed into an expression for the
+probability banks survive given the productivity shocks and aggregate
+sunspot if the idiosyncratic sunspot shock's distribution is defined.
+
+The household's problem is similarly adjusted. Beginning with:
+
+\begin{equation*}
+V_{t}^{h,i}=\max_{Kh,RD,g}E_{t}\left(u(C_{t}^{h,i})+V(.)\right) 
+\end{equation*}
+
+and the income = expenditure constraint:
+
+\begin{eqnarray*}
+&&C_{t}^{h,i}+D_{t}^{i}+Q_{t}^{i}K_{t}^{h,i}+f(K_{t}^{h,i})+p_{t}(g_{t+1}^{i}-w^{i}G)+h(g_{t+1}^{i},w^{i}G)
+\\
+&=&Z_{t}^{i}W^{h}w^{i}+R_{t}^{i}D_{t\text{\textminus}%
+1}^{i}+(Z_{t}^{i}+Q_{t}^{i})K_{t\text{\textminus}1}^{h,i}+g_{t}^{i}
+\end{eqnarray*}
+
+It then becomes
+
+\begin{eqnarray*}
+V_{t}^{h,i} &=&\max_{Kh,RD,g}u(C_{t}^{h,i}\left( S,Kh,RD,g\right) ) \\
+&&\sum_{Z^{\prime },\xi agg^{\prime },\xi i^{\prime }}\left( p(Z^{\prime
+agg^{\prime }},\xi ^{i^{\prime }}|Z,\xi ^{agg^{\prime }1},\xi ^{i})\right)
+\left( V(S^{\prime },Kh,RD,g)\right) 
+\end{eqnarray*}
+
+Similarly, the size of the summation can be reduced by breaking into
+next-period run and no-run states, with probabilities of each arising (given
+Z' and $\xi ^{agg}$') a function of the distribution of $\xi ^{i}$.
+
+\textbf{\bigskip }
+
+\textbf{Luke -- this is good progress. \ I think that you will want to work
+to streamline the notation. \ \ Is the bottom line that a sunspot driven
+bank run (a) affects rewards to the parties so that it has welfare
+consequences; (b) affects various state variables going forward (so setting
+off a version of the transition dynamics that you looked at previously) and
+(c) that "markov sunspots" may lead to "expected bank runs."?}
+
+\textbf{\bigskip }
+
+\textit{I would say (a) and (b) are entirely accurate, and (c) is basically 
+correct, but I'd put it that there's a continuum of expectedness over sunspot 
+states given fundamental states, more than a straight expected/unexpected 
+situation.}
+
+\end{document}
