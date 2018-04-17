@@ -1,0 +1,293 @@
+%% LyX 2.1.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+\begin{document}
+\begin{verbatim}
+TO:        Robert G. King
+             Stephen J. Terry
+FROM:      Luke Zinnen
+DATE:      December 17 2017
+SUBJECT:   Solution of recursive G-K problem
+\end{verbatim}
+
+\section{Overview}
+
+This memo provides a description for the process for solving the recursive
+ formulation of the G-K model for a single bank and representative household
+ with the intention to move to the full distribution from the solution to
+ the individual problem. (Section 3 of memo to Professor Terry details the effects of removing the
+ cost of transacting in risk free assets using the methods employed over
+ the summer, with two banks.
+ As the cost converges to 0, the price and quantity effects converge to
+ those of having a single household and two banks, which exhibits greater
+ amplification than a single household and one bank.)
+
+\section{Structure of the problem}
+In basic form the state space consists of four state variables at each time step:
+
+$K^{b}$, the quantity of productive/earning assets held by the bank as it enters the period, the remaining portion being held by the household
+
+$RD$, the repayment banks must make to creditors: either a deposit times an interest rate or the face value of a note sold at a discount
+
+$Z$, the level of productivity
+
+$br$, an indicator for whether a run has materialized
+
+The former two states are endogenously chosen, while the third follows a defined process (I am currently using log-AR(1)). The bank run indicator is selected via a random process conditional on the other state variables. (Note that the method described corresponds to the individual IID formulation discussed in the Bank run sunspots and DP formulation memo series. An additional exogenous state variable would allow for confidence in excess of or worse than fundamentals justify, but is omitted for clarity and speed at this time. Similarly, adjusting the bank value function to include a demand curve for capital and a state variable for aggregate capital held by the household allows for the movement of capital across banks.) Transitions between states reflect a combination of exogenous and endogenous factors. Z follows a fixed transition matrix, while $K^{b}$ and $RD$ constitute the bank's policy function considering expectations of both $Z$ and $br$ for the combinations of debt and assets available.
+
+The bank optimizes its choice of state variables to maximize the value of expected discounted consumption of existing owners subject to an exogenous retirement/dividend rate $\left(1-\sigma\right)$
+ :
+
+\[ V=\frac{1-\sigma}{\sigma}\left(N-W\right)+\beta E\left[\frac{N'-W}{N'}V'\right] \]
+ 
+where V is the value of reaching a state as a continuing banker, W is the endowment of new bankers, and N is the net worth of the bank after new bankers join and dividends are paid. This reflects a process wherein there is a single bank with bankers flowing in and out, taking payouts with them as they leave or adding their endowment as they join in exchange for a stake in the firm proportional to the share of assets financed by their endowment, which has a dilutive effect on continuing bankers.
+
+The bank is subject to 
+
+1) a balance sheet constraint 
+
+\begin{equation}\label{BS}Q*K^{b}\leq N+\frac{RD}{R}\end{equation}
+ 
+that the value of its assets (price $Q$ * amount $K^{b}$
+ ) must be no greater than its net worth and borrowed 
+funds ($RD$/$R$ is the amount available for use in the borrowing period).
+
+2) an incentive compatibility constraint 
+
+\begin{equation}\label{IC}\theta Q*K^{b}\leq\beta E[V']\end{equation}
+
+that the continuation value for non-exiting bankers must be at least as great as 
+the amount they could abscond with by liquidating the bank's capital.
+
+Additionally, there are the following requirements which operate separately in 
+the solution method:
+
+3) the requirement that aggregate income equals aggregate expenditure
+
+\begin{equation}\label{Output}C^{h}+\frac{1-\sigma}{\sigma}\left(N-W\right)+\frac{\alpha}{2}\left(1-K^{b'}\right)^{2}=\left(1+W^{h}\right)Z+W+G\end{equation}
+
+(household consumption plus bank consumption plus household capital management costs equal capital output, the household's productivity-linked endowment, the banker's endowment, and the household's fixed endowment)
+
+4) the household FOC wrt capital
+
+\begin{equation}\label{FOCcap}Q+\alpha\left(1-K^{b}\right)=\frac{\beta}{u'\left(C^{h}\right)}E\left[\left(Z'+Q'\right)u'\left(C^{h'}\right)\right]\end{equation}
+
+(the marginal cost of capital to the household equals its expected SDF)
+ 
+
+5) the household FOC wrt deposits
+
+\begin{equation}\label{FOCdep}1=\frac{\beta R}{u'\left(C^{h}\right)}E\left[X'u'\left(C^{h'}\right)\right]\end{equation}
+ 
+where $X'$ is the recovery ratio and $R$ is the promised rate of return on bank debt
+
+6) the bank's net worth process
+
+\begin{equation}\label{lawOfMotion}N=\sigma\left[\left(Z+Q\right)K^{b}-RD\right]+W\end{equation}
+
+which has the net worth of the bank equal the fraction of continuing bankers times the pre-dividend excess of the value of capital over required repayments, plus the endowment of new bankers (note that in the case of a bank run, I assume new bankers consume their endowment and exit immediately)
+ 
+
+
+
+ 
+\section{Solution method}
+
+There will be a defined set of states $\left(Z,K^{b},RD,br\right)$
+  with other endogenous variables taking values dependent on them. 
+In the inner loop, the endogenous variables with the exception of
+ value $V$ are held fixed (Q, N, R, $C^{h}$, X). In the outer loop, 
+old endogenous values and the new value $V$ are used to solve for new endogenous
+ values.
+
+\subsection{Initialization}
+
+Define parameters $\alpha,beta,sigma,theta,rho,Zss,W,Wh,G$, and the grids $Kbs$ and $RDs$ of values of $K^b$ and $RD$ may take. 
+
+Use Tauchen's method to define the grid of productivity levels $Zs$ and transition matrix $\pi^{Trans}\left( Z,Z'\right)$
+
+For all default states and all no-default states with $K^{b}$ of 0 (indexes (:, :, :, 2) and (:, 1, :, 1) ) set:
+
+1) initial consumption to total output less capital management cost for the entire capital stock 
+
+2) initial bank net worth to 0 and W respectively
+
+3) the price of capital to $Q=\left( \beta Z-\alpha \right) /\left( 1-\beta \right)$
+
+4) initial interest rate R to the reciprocal of $\beta$
+
+5) initial bank debt D to 0
+
+6) initial banker continuation value to 0 and W respectively
+
+For each productivity level $Z\left( i\right)$, analytically (Matlab) solve the system of equations (1) - (6) assuming no defaults and constant productivity. Set initial values of Q, R, and V to the solution's values for all levels of RD and positive Kb, for no-default: index (i, 2:, :, 1).
+
+Using those values, for those states: 
+
+1) set bank net worth N using (6) 
+
+2) set household consumption Ch using (3)
+
+3) set bank debt D using $D=RD/R$
+
+For all states calculate the recovery ratio as 
+$\min \left[ 1,\frac{K^{b}\times\left( Z + Q\right)}{RD}\right]$
+. For all (Z, Kb, RD) states, calculate the probability of survival $\pi Live\left( Z,Kb,RD\right)$  as: 0 if X in the non-default state (Z, Kb, RD, 1) is less than 1; the X of the default state (Z, Kb, RD, 2) otherwise. The former reflects a fundamental default in which the bank cannot repay loans even if confidence is high; the latter has the probability of a sunspot-run increasing with the potential loss.
+
+Set the policy function (Kb', RD') for all default states to (0, 0).
+
+Proceed to the outer loop of the price-value function iteration, which begins by immediately entering the inner loop.
+
+\subsection{Inner loop}
+
+ For each state $\left( Z,K^{b},RD,br\right)$ without a bank run (Z, Kb, RD, 1):
+
+{
+
+for each combination of Kb' and RD' the bank might choose to hold and issue going into the next period:
+
+{
+
+determine if the combination is reachable based on the bank's balance sheet constraint: $Q*K^{b'}\leq N+\frac{RD'}{R}$
+ 
+determine if the combination is reachable based on the bank's incentive compatibility constraint: 
+$\theta Q*K^{b'}\leq\beta E[V\left( \cdotp ,K^{b'},RD',\cdotp \right)]$. 
+
+Note that the expectation is over the first and fourth elements, and thus is the 
+sum over $Z'$s of the product of the probability $\pi Z\left( Z,Z'\right)$ of transitioning to each Z' from Z 
+times the probability of a run $\pi^{Live}\left(Z',Kb',RD'\right)$ in that state times the old 
+estimated value $V'$ of reaching the $(Z',Kb',RD',1)$ state.
+
+}
+
+out of the reachable states, select the one with the greatest expectation of the 
+value function $E\left[V'\right]$ and store the associated (Kb', RD')
+
+update the state's value function: 
+
+$Vnew\left(Z,Kb,RD,1\right)=\frac{1-\sigma}{\sigma}\left(N-W\right)+\beta E\left[\frac{N'-W}{N'}V'\left(\cdotp,K^{b},RD,\cdotp\right)\right]$
+
+}
+
+If the largest absolute value of a state's change |Vnew - V| is greater than a cutoff amount maxChange, repeat the 
+inner loop after setting V = Vnew. Otherwise note the final policy function $\left(Kb',RD'\right)$ 
+for each entering state $\left(Z,Kb,RD,0\right)$.
+
+\subsection{Outer loop}
+
+Having established a policy function for each state, it is necessary to update 
+prices and quantities based on the implied policy functions. There are four 
+variables which must be solved for at each grid point: household consumption 
+$C^{h}$, bank net worth $N$, the interest rate $R$ (which together with future 
+repayment $RD'$, fixed by the policy choice, determines deposits $D$), and the 
+price of capital $Q$. These are set, for states without a bank run, by the 
+reduced system of equations and the policy function solved for in the inner loop.
+
+For each state:
+
+Calculate and save $E\left[\left(Z'+Q'\right)u'\left(C^{h'}\right)\right]$ as Eprod, using the policy rule identified in the inner loop (no-run states) or (Kb', RD') = (0, 0) (run states):
+
+\[ Eprod(Z = \sum_{Z'} \sum_{br'} \pi^{Trans}(Z, Z') \times \pi^{Live} \times \left(Z'+Q'\right)u'\left(C^{h'}\right)\]
+
+And calculate and save $E\left[X'u'\left(C^{h'}\right)\right]$ as Erecov:
+
+\[ Erecov = \sum_{Z'} \sum_{br'} \pi^{Trans}(Z, Z') \times \pi^{Live} \times X\times u' C^{h'}\]
+
+Set N, Q, R, and $C^{h}$ to the solution of the system (3)-(6) (or dampen by 
+setting to a linear combination of the solution and the old values)
+
+\[R=\frac{\beta^{-1}+(1-\sigma)K^b\frac{Eprod}{Erecov}}{Erecov\times\left((1+W^h)Z+W+G-(1-\sigma)[(Z+\alpha(1-K^{b'}))K^b - RD]\right)} \]
+
+\[Q = \alpha (1-K^{b'}) + \frac{1}{R} \frac{Eprod}{Erecov} \]
+
+\[ N = \sigma\left[(Z+Q+K^b-RD\right]+W  \]
+
+\[ C^h = frac{1}{\beta R Erecov} \]
+
+(For no-run states, exclude (5) and (6) and settig $K^{b'}$, RD', N, and W to 0.)
+
+Calculate recovery ratios X:
+
+\[\min \left[ 1,\frac{K^{b}\times\left( Z + Q\right)}{RD}\right]\]
+
+Update bank survival probabilities $\pi^{Live}(Z,Kb,RD,:)$:
+
+\[\pi{Live} = 1\left(X(\ldots,1) \geq 1\right)\times\max\left(1, X(\ldots,2)\right) \]
+
+If none of N, Q, R, or $C^{h}$ changed by an amount larger than a cutoff value, 
+the system is considered to have converged. Otherwise, repeat the outer loop.
+
+\section{Adding Heterogeneity}
+The following describes the revisions proposed to extend the above to solve an 
+individual bank's problem in the context of 1) a representative household, 2) 
+numerous optimizing banks, 3) transactions costs for banks changing their 
+capital holdings, 4) for now a constant productivity for the aggregate level, 
+and thus the household's endowment and yield from capital it operates itself, 
+with banks' productivity varying around this TFP level.
+
+First, the transaction cost $h(K^b, K^{b'})$ must be introduced, and thus the 
+bank's balance sheet constraint remains the same, but the evolution of bank net 
+worth is different:
+
+\begin{equation}\label{BSnew}Q*K^{b}\leq N\end{equation}
+
+The evolution of bank net worth reflects the new costs and flow of bankers:
+
+\begin{equation}\label{lawOfMotionnew}N=\sigma\left[\left(Z+Q\right)K^{b}+ W-RD- h\right]\end{equation}
+
+Likewise, the bank's value function is updated (moving dilution to occur within period):
+
+\[ V=\frac{1-\sigma}{1-\sigma}\frac{N+h}{N+W+h}\frac{1-\sigma}{\sigma}N+\frac{\sigma}{\sigma}\frac{N+h}{N+W+h}\beta E\left[V'\right] \]
+
+but otherwise the incentive compatibility constraint remains the same.
+
+The bank level output/expenditure function becomes solely focused on the bank's sources and uses:
+
+\begin{equation}\label{Outputnew}\frac{1-\sigma}{\sigma}\left(N\right) + h + (K^{b'}-K^b)Q + RD=K^bZ+W\end{equation}
+
+The constant price of capital is pinned down by the household's FOC:
+
+\begin{equation}\label{FOCcapnew}Q+\alpha K^{h}=\beta\left(Z^h+Q\right)\end{equation}
+
+The rate of return is pinned down by the expected recovery rate:
+
+\begin{equation}\label{FOCdepnew}1=\beta R E\left[X'\right]\end{equation}
+
+The inner loop proceeds similarly, generating a policy function given exogenous prices and processes.
+
+The outer loop no longer functions to generate mainly prices, but quantities, 
+specifically the distribution of net worths, dividend flows, capital held, and 
+transactions costs paid by banks. 
+
+Generate the ergotic distribution of bank productivity, capital, debt, and run 
+status. Add up the quantity of capital held by banks. 
+
+The following equations define the requirements for a static equilibrium:
+
+The household's consumption and net purchases of debt must equal its endowment, 
+debt maturities, net capital income, and recoveries from defaulted banks.
+
+\[ C^h + \sum_{Z,K^b,RD,br} \frac{w\times RD}{R} = G + Z^hK^h - \frac{\alpha}{2}(K^h)^2 +\sum_{Z,K^b,RD,1}RD + \sum_{Z,K^b,RD,2}(Z+Q)K^b \]
+
+And the rate of return on household capital must satisfy its first order condition
+
+\[Q + \alpha K^h = \beta (Z^h + Q) \]
+
+And the total capital held by banks plus household capital must equal 1.
+
+Set the quantity held by the household to the stock not held by banks; solve for consumption and capital price; and update recovery ratios, interest rates, and survival probabilities in each state.
+
+If the banks hold more than all of the capital, increase the price of capital and update the same.
+
+If there was a large change in any prices or quantities, repeat the inner loop. 
+
+
+
+\end{document}
