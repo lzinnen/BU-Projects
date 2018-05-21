@@ -1,0 +1,95 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+\begin{document}
+\begin{verbatim}
+TO:        Robert G. King
+           Stephen J. Terry
+FROM:      Luke Zinnen
+DATE:      20 May, 2018
+SUBJECT:   Bank Policies: Partial Equilibrium Testing
+\end{verbatim}
+
+\section{Overview}
+
+This memo provides a proposal for near-term investigation of bank policy in my model. It is intended* 
+to isolate features which may underly computational instability in the full general equilibium model. 
+The exercise is to generate a partial equilibrium setting in which banks choose policies subject to 
+their constraints and objectives, but do not influence prices. 
+
+ 
+
+*In parallel with the exercise of creating a general equilibrium model with as simple a stand-in for 
+the banking sector as feasible.
+
+\section{Setup}
+This exercise will be built off of results from the code for solving the model in general equilibrium.
+Following an initialization procedure, the code will be allowed to run until price and quantity updates 
+in the outer loop no longer become smaller with further iterations. At this point, a snapshot of the 
+resulting prices and quantities (chiefly $Q$, the price of the capital asset; $R$, the risky interest 
+rate paid on deposits; and $\pi^{live}$, the probability of a bank not experiencing a bank run in a 
+given state) will be taken for use as the basis of the partial equilibrium exercise. 
+
+These values will be used as inputs to the inner loop solving the bank's policy problem: given asset 
+prices, interest rates, and default probabilities, to choose capital holdings and debt issuance to 
+maximize the expected discounted value of payouts to continuing shareholders, subject to their balance 
+sheet constraint (the value of their assets must be no greater than the sum of their equity and liabilities) 
+and incentive compatibility constraint (the value of the bank as a going concern must equal or exceed 
+the fraction of its liquidation value bankers can run away with). 
+
+
+\section{Output and Tests}
+Two methods of determining the bank's policy function will be used: policy function iteration and 
+value function iteration. Although the results for both methods are expected to be the same in terms 
+of the resulting policy and within the margin of the value function iteration's halting tolerance, 
+this will serve as confirmation and inform whether they are similarly stable and their relative speeds 
+of execution. 
+
+The outputs will be the policy function and the prices, quantities, and probabilities it implies for 
+the period prior. These values will be compared with their corresponding inputs to inform where 
+the largest changes are coming from, and thus potentially the instability. Additionally, I will plot 
+the ergotic distribution of the policy funciton, and compare it with both the implied values and the 
+input-to-update changes state by state. 
+
+Going beyond reporting the baseline using the snapshot directly, I will make small changes to the asset 
+price, interest rate, and probability of default. Making one parallel change across all states, for 
+one of these values, for the current or future period value or for both at once.* The differences between 
+policy functions under the new prices and the baseline will be noted, as will induced changes in 
+updated values. Again, the ergotic distribution will be reported, along with changes due to the new 
+values defining the partial equilibrium setting. 
+
+ 
+
+*Interest rates will be varied only for the current period, default probabilities only for the future, 
+and asset prices for both. When future asset prices are changed, so will default probabilities, to 
+correspond with the (currently linear) relationship between depositor recovery ratio and default 
+probability. When future values are varied, however, current period values will remain fixed rather 
+than follow the relationship implied by the outer loop (household and aggregation effects), as the 
+main area of interest is currently the bank's decision rule.
+
+\section{Results and Goals}
+The results coming from the baseline exercise are intended to identify regions where there are rapid 
+changes in values (for example, bank run probabilities). Especially if these rapidly changing values 
+are associated with large changes in bank policy, they could be driving the non-convergence in computation. 
+Comparison with the ergotic distribution will inform which regions are likely to be important in a 
+different way: if a state is never traversed in equilibrium, it is unlikely to be of great importance 
+whether or not its values change a great deal in the outer loop updating process (provided of course 
+that the change is not one that would result in the state being traversed).
+
+Results from varying values used to define the partial equilibrium serve two purposes. The first is 
+to explore the sensitivity of the policy function (and resulting ergotic distribution) to changes in 
+constraints or payoffs. In addition to showing the absolute degree of changes that result, the output 
+will inform as to the relative strengths of changes for the different input values: asset price vs. 
+interest rate vs. default probability, present vs. future, and in the case of varying the interest rate 
+or current period asset price, cleanly separating effects due to varying constraints from varying 
+payoffs. Additionally, if the ergotic distributions remain similar, that may indicate it is safe to 
+weight large desired updates as unimportant in those regions not traversed.  Second is to determine 
+the degree to which shifts in the values move the locations of high-gradient regions in the output, 
+as that would be a likely driver of non-convergence. 
+
+\end{document}
