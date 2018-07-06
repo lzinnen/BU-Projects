@@ -1,0 +1,454 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+\usepackage{float}
+\begin{document}
+\begin{verbatim}
+TO:        Robert G. King
+             Stephen J. Terry
+FROM:      Luke Zinnen
+DATE:      28 June, 2018
+SUBJECT:  Partial Equilibrium Testing: Results
+\end{verbatim}
+
+\section{Overview}
+
+This memo provides an overview of the results of looking at the intermediate output of my solution method 
+for the recursive GK model, and what these results imply for future attempts to address the solution's 
+non-convergence.
+
+\section{Setup}
+The primary input to the test case was the intermediate result of the solution method after some 
+thousands of iterations of the outer loop (the "price" portion of the "price-value/policy function 
+iteration"). The relavant inputs included the asset price, interest rate on deposits, bank net worth, 
+bank run probability, and household consumption. These were used as constant inputs to the inner loop 
+(determining the bank's policy function given exogenous prices); prices, interest rates, bank net worth, 
+and household consumption were updated using the resulting bank policy function. These new values and
+the ergotic distribution were the final variables of interest.
+
+This was repeated varying the input values uniformly up or down in the relavant time period by 10 basis points, and results 
+were compared to the baseline. This was done for both inner loops based on both value function iteration 
+and policy function iteration, though discussion will focus primarily on value function iteration, 
+for reasons to be explained in the following section.
+
+
+
+\section{Results}
+\subsection{Baseline Tests}
+The most immediately striking result of the baseline test is the distinction between results for using 
+value or policy function iteration for the inner loop. The policy functions differed for several states, 
+and those states had a difference in value function approximately ten times as great as the difference 
+between the value and policy results for other states. The policy function iteration had the bank in 
+those states unable to hold capital, while the policy resulting from value function iteration involved 
+positive capital holdings. 
+
+Although the difference in ergotic distribution at those specific states was small (2.32E-34), other 
+states had considerable difference between the resultant distributions for the two methods: of order 
+1E-4, or more than the average density over all states.
+
+This suggests that a focus on stability between price updates is likely to be important for obtaining 
+correct and consistent results, and the known convergence and superior stability properties of value 
+function iteration (and importantly less apparent tendency to get stuck in bad corner policies) make it 
+or similar methods preferred.
+
+\subsection{Adjusting the Risky Rate Paid on Deposits}
+On decreasing or increasing the rate banks must pay on deposits, large and consistent changes to the 
+bank's value function result, which are particularly visible when seen as a ratio against the baseline 
+result.  There is a discrete break in the changes following a roughly straight line in bank capital-bank debt 
+space from the origin northeast at approximately a slope of 0.75: this ridge is where the bank's original 
+ergotic distribution was largely concentrated, due to being the region operating the most capital without 
+violating one of its constraints. Reducing the rate paid on deposits increases the states' values immensely 
+(coming from a very low base in the low capital, high debt side), but has comparitively minor effect where 
+the balance sheet constraint was already slack. The reverse is true on increasing R: there is no effect 
+where the balance sheet constraint bound in the baseline, and there was a large reduction in value 
+espeically along the margin of the ridge where previously the balance sheet constraint was close to 
+binding, and the reduction gets smaller you consider states further removed from this cutoff line.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{ergVbase.png}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalDR.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalIR.png}
+\end{figure}
+
+
+There are many and large changes in capital choice with a small shift in the risky rate. These are not 
+concentrated solely along the active ridge with high ergotic density, and are far from uniform in direction:
+many states see higher capital use by banks when rates rise, and the reverse, though on average the 
+direction is at least correct. 
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VKbpLessVKbpDR.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VKbpLessVKbpIR.png}
+\end{figure}
+
+A decrease in R brings a volatile change in debt positions: very jumps generally about 0.4, surrounded by states with no change. Similar results for an increase in R, reversed and with only very small (0.001) magnitude.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpDR3.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpIR2.png}
+\end{figure}
+
+Decreasing the interest rate tends to raise the risky asset's price, in a way that's most pronounced just 
+to the high debt/low capital side of the ergotic ridge, by about 0.06-0.2 depending on productivity level. 
+Prices rise less and less frequently on the opposite side, especially far from the ridge. Raising the interest 
+rate affects mainly the region to the good side of the ridge, but in a fairly volatile way with some large increases 
+in price but many (if somewhat smaller) decreases nearby.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewDR3.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewIR2.png}
+\end{figure}
+
+The response of the output estimate of R to a reduction in the input estimate is a consistent and 
+large (-0.1) fall near the ridge on the bad side, which rapidly reduces to a value closer to -0.01. On the 
+opposite side there is some volatility, but little change on average. A rise in the input R retains the 
+output volatility on the good side of the ridge, but has almost no effect on the low bank net worth side.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewDR3.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewIR3.png}
+\end{figure}
+
+Reducing the interest rate increases bank net worth along the ridge by multiples into the 20s, but has 
+minimal effect elsewhere. Increasing the interest rate can, interestingly, increase output bank net worth 
+estimates, by a fair amount (as high as -3x), but is in general more mixed but not especially volatile. This takes 
+place on the high net worth side of the ridge only, though; no changes are observed on the low net worth side.
+
+\subsection{Adjusting Bank Survival Probability}
+Reducing the probability of a bank surviving has a minor impact on estimated state values in the low net worth 
+region, on the order of a 1\% reduction. This is larger on the opposide side of the ridge, with the magnitude 
+depending on the productivity level, with higher productivity levels more responsive. Besides these general 
+regions, on the ergotic ridge itself there are cases of significantly larger falls in value. Increasing the survival 
+probability has little effect, of order at most 1\% and generally much less, concentrated near and on the active
+ridge.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalDpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalIpiL.png}
+\end{figure}
+
+Apart from reducing survival probability with the lowest productivity level, very few states 
+see a change in capital chosen by banks. For that case, the changes are concentrated 
+close to and parallel to but not on the ergotic ridge, on the high net worth side. The location
+of states which do have changes does not have much pattern. The same generally holds for debt choice.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VKbpLessVKbpDpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalIpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpDpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpIpiL.png}
+\end{figure}
+
+Decreasing bank survival probability predictably decreses the ergotic distribution along 
+the region of non-default states with positive initial density, but also increases non-default 
+density at low (or 0) levels of debt issued and capital held; more time is spent in the early 
+recovery from default. For corresponding bank run states, similar holds in reverse, but with much lower 
+absolute levels of change and few cases of reduced density. 
+
+Increasing bank survival probability has smaller overall effects, generally in the opposite 
+direction (increasing density for survival states), and with instances of reduced density 
+in survival states being balanced by increases at nearby points on the ridge rather than 
+near the origin. Bank run states are affected to an even smaller degree than survival states, 
+and where there are increases in density tend to be at very aggressive capital levels.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergDpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergDpiLbr.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergIpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergIpiLbr.png}
+\end{figure}
+
+Decreasing survival probability reduces the price of the risky asset by 
+up to about 3\%, but in few states. For the medium high productivity level, 
+it decreases the price consistently in the high net worth region, but by only a few 
+basis points. With an increase in survival probability, there is rather a mix in some 
+few states of similar magnitude, and a similar consistent fall in the price in the 
+high net worth region but for low productivity levels.
+VQnewLessVQnewDpi
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewDpi.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewDpi2.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewIpi.png}
+\end{figure}
+
+The effect of decreasing survivial probability is generally to increase rates, by 
+up to a few percentage points, but again in relatively few states. Mirroring the 
+effect on price, rates increase consistently but by only a few basis points in 
+the medium-high productivity state. 
+
+Increasing the survival probability acts similarly, either pushing the rate up or down 
+a few percentage points or consistently increasing it by a few basis points in the 
+high net worth area depending on productivity level.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewDpi.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewIpi.png}
+\end{figure}
+
+Increasing or decreasing survival probability has similar effects on bank net worth 
+as it does on price and interest rates. 
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VNnewLessVNnewDpiL.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewIpi.png}
+\end{figure}
+
+
+\subsection{Adjusting Capital Price}
+Values are extremely responsive to changes in capital price, ranging from a few percent to 
+single digits in the high net worth region, to a ratio change in the hundreds close to 
+the ridge on the bad side, to thousands or even billions in cases where there was a 
+very low base in the low net worth region for some productivity levels.
+
+Increasing the capital price has very different results depending on productivity level. 
+In all cases the value change is flat or nearly so in each region, but the levels (except for 
+the highest productivity level) are very different, reducing value to 0 in the low net worth region 
+for low to medium productivity, and leaving the value in the high productivity region 
+largely unchanged. High productivity levels see no change in the 
+high net worth region, but smaller falls (about 25\% for the medium high level, or none 
+for the high productivity level) for the low net worth region, and spikes lower along the ridge.
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalIQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VvalFracVvalIQ2.png}
+\end{figure}
+
+Decreasing the capital price has volatile effects, with large swings in either direction 
+close to each other both in the low net worth region and the very high net worth region. 
+Changes in both directions exist but of lower magnitude in the part of the high net worth 
+region relatively close to the ridge. Changes with increasing Q are less pronounced and 
+follow less of a clear pattern, but crucially include the capital choice at the origin fallinng to 0; 
+the origin is thus a fixed point and any possibility of reaching a bank run state will result in 
+a degenerate distribution at the origin. Debt choices are more or less similar.
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VKbpLessVKbpDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VKbpLessVKbpIQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRDpLessVRDpIQ.png}
+\end{figure}
+
+
+
+Decreasing the asset price leads to mixed effects for non bank run states, roughly 
+seeing more density in high capital states and less in low, and slightly shifting the ridge
+in the low debt direction. Similar with much lower absolute magnitudes holds for the 
+bank run case, and with fewer falls in density.
+
+For an increase in Q, all densities fall to 0 except for the origin.
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VergLessVergDQbr.png}
+\end{figure}
+%\begin{figure}[H]
+%\centering
+%		\includegraphics[width=.5\textwidth]{VergLessVergIQ.png}
+%\end{figure}
+
+Decrease in input Q leads to large changes concentrated near the ridge. Particularly large
+increases in estimated Q over 0.1 are found just on the low net worth side of the ridge, while smaller changes
+are found on the high net worth side and some large falls right on the ridge, particularly near the origin.
+
+Increases in input Q have no effect on output estimated Q on the low net worth side 
+of the ridge, but fairly volitile if lower magnitude (about 0.04) changes in both directions 
+on the high side. Repeating the test with smaller values of deviations from baseline values, 
+down to at least a tenth of a basis point, still resulted in very large fractions of all states 
+with the bank forced to choose the no-capital no-debt policy, including at the origin, resulting in 
+a degenerate distribution.
+
+
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VQnewLessVQnewIQ.png}
+\end{figure}
+
+
+Reducing Q leads to reductions in the risky rate over most of the low net worth region, most pronounced
+near the ridge and with low capital. Along the ridge near the origin there is substantial increase in R, and 
+otherwise throughout the high net worth side there is on average little to no change, but a fair amount of 
+states increasing or decreasing by up to a couple of percentage points. With an increase in asset price, 
+there is more volatility on the high net worth side, but the increase along the ridge is no longer present and 
+on the low net worth side there is substantially no change in interest rate levels.
+
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VRnewLessVRnewIQ.png}
+\end{figure}
+
+Decreasing the asset price has no effect on the new estimate of net worth of banks on the low net worth side of the ridge, 
+but leads to considerable volatility on the high net worth side, with the greatest amount closest to the ergotic ridge. 
+Closest to the ridge there tend to be increases, and just further away large decreases, and in the rest of the 
+high net worth region a rapidly shifting mix of the two but of lesser magnitude. Increasing Q likewise has no effect 
+on the low net worth side of the ridge, but volatility on the high side and expecially where capital is very high, sometimes 
+with a series of large increases along the ridge itself (depending on productivity level).
+
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VNnewLessVNnewDQ.png}
+\end{figure}
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{VNnewLessVNnewIQ.png}
+\end{figure}
+
+
+\section{Takeaways}
+I believe that there are two key features of the results shown. The first is the large and rapid changes in responce 
+on a state by state basis, notably including a great deal of volatility within regions of fairly flat average responses 
+to parameter changes. The second is that responses are often most pronounced at or near the region--the 
+states running in a band roughly from the origin to (bank capital = 1.0, bank debt = 0.6) at each productivity 
+level--where the bank's policy function had it most frequently.
+
+The latter fact is crucial in that it demonstrates that the observed non-convergence in outer-loop 
+variables reported in previous memos is not a mere artifact of repeated changes in estimates for states 
+which are never reached and are thus largely irrelevant, in the sense that they only need to be estimated 
+precisely enough to confirm they are not viable choices in the bank's menu of policy functions. Were it 
+the case that the states near those the bank chooses to occupy were largely stable to small parameter 
+changes, even as significant moves occurred far from the region of efficient choices (but not large enough 
+to render them plausible alternatives), then I might be able to justify focusing on the well-estimated relevant 
+portion of the state space, but that is not the case.
+
+The former fact, the volatility within regions, suggests two major conclusions to me. The first, and more 
+certain, is that it will be necessary to very correctly estimate each new set of outer-loop variables 
+conditioned on the future. If (admittedly more extreme, in the sense of all states sharing the same change) 
+small perterbations of parameter values, 10bp in either direction in each case, or 1 to 2 orders of magnitude 
+smaller than the largest period-by-period estimate updates and of similar order to mean absolute changes, 
+are capable of resulting in such large changes in update estimates, then finding at least the conditionally 
+correct policy function with as great precision as possible before returning to the outer loop to update 
+asset prices, interest rates, etc. is likely a necessity. This precludes the use of various solution methods 
+I have used so far for either the full model or certain iterations of the simplified model with an alternative 
+investment technology taking the place of the banking system. These include both policy function 
+iteration and value function iteration to solve the inner loop, as well as simple alternating between 
+a single step of the value function on the inner loop and updating outer-loop variables. I believe the 
+greatest stability is achievable through the following: taking one period ahead values as given and 
+an initial estimate of current period values (which may be the same), solve a one-period maximization 
+problem for the bank and use the result to update estimates of current period values. Repeat this 
+process holding the future values fixed but with the new estimates of current period values. Only 
+when this repetition converges on an updated estimate of current period values should the estimate 
+be held fixed and the process move backwards a time step, using the converged estimate of current 
+period values as the new future values. While this may prove helpful in increasing accuracy and 
+precision of estimates, the inability to completely reset the bank's value function each period will 
+tend to increase the number of periods before which initial guesses of the value function are attenuated.
+Additionally, I have used this method in some cases with variations of the 
+stripped down model, and though it will generally converge to new estimates, the time involved is 
+often extensive.
+
+The second conclusion I draw from the rapid changes in new estimates throughout the state space, though 
+less strongly indicated, is that the marginal value of increasing the fineness of the grid is likely still 
+high, and yield meaningfully improved smoothness. Experience with variations of the simplified model 
+suggests that increasing the number of grid points results in a less than proportional reduction of 
+estimate update sizes, such that expansion without other changes in method is not likely to be sufficient 
+to reduce instability to an acceptable level on its own (while remaining within time and memory constraints), 
+but it may be a useful means of getting some improvement.
+
+
+\end{document}                          
