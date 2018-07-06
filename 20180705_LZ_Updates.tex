@@ -1,0 +1,148 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+\usepackage{float}
+\begin{document}
+\begin{verbatim}
+TO:        Robert G. King
+FROM:      Luke Zinnen
+DATE:      05 July, 2018
+SUBJECT:  Mid-summer updates
+\end{verbatim}
+
+\section{Overview}
+This memo is intended to update the status of my work through the start of July, principally focusing 
+on the solution of the GK model.
+
+\section{GK: Partial Equilibrium Testing}
+Taking a snapshot of outer loop values (asset price, interest rate on deposits, bank net worth, and (unused in the inner loop) household 
+consumption) from the existing solution method, I separately  perturbed each of the values by a uniform 
+10bp and solved the bank's problem with both value and policy function iteration, comparing the implied 
+policy functions and newly estimated values to estimates from the baseline input values. 
+
+This yielded several results, including important distinctions between results for value and policy 
+function iteration; a large degree of volatility in output estimates for many variables as small moves are 
+made through the state space; consistent and large changes for others, often following the specific 
+region of the state space near the positive density portions of the bank's ergotic distribution; and extreme 
+sensitivity of the policy function to asset price increases in particular, with even increases <1bp 
+resulting in degenerate ergotic distributions at the origin.
+
+These observations have implied to me two requirements for attempts to solve the GK problem recursively 
+going forward. First and more important, any method used must very accurately estimate each outer 
+iteration/step backward in time, given the future: the high instability of estimates to small changes in 
+inputs means that imperfections cannot easily be washed away over the course of outer iterations, so 
+getting present values as close to correct as possible conditional on future values is necessary before 
+advancing further back in time. This suggests a process not of value or policy function iteration, but 
+repeated one-step solutions holding future values fixed and updating present estimates until they converge, 
+only then taking a step backwards in time. 
+
+Second, there is likely room for improvement by increasing the density of the state space, even if 
+doing so alone is (per prior observations with simplified models in which an investment technology 
+took the place of the banking sector) unlikely to do so on its own while maintaining feasible memory 
+usage and computation time.
+
+\section{GK: Subsequent Solution Attempts}
+I began by implementing the above described method of repeatedly solving the bank's problem for a 
+given period until it converges before moving back a time step, seeding it with the interim estimates 
+used for the partial equilibrium testing. This resulted in non-convergence for even a single time step.
+
+I followed by increasing the number of states as follows: retain 5 productivity levels; increase 
+the capital levels to 151 from 51, and their spacing from $\{0.0^2, 0.02^2 ... 0.98^2, 1.0^2\}$ to 
+a more uniform (but still denser at lower values) $\{0^{1.5}, (1/150)^{1.5} ... (149/150)^{1.5}, 1.0^{1.5}\}$; 
+increase the repayment levels to 65 from 31, decrease their range from [0, 1] to [0, 0.75], and likewise 
+shift to a more uniform $x^{3/2}$ spacing from $x^2$; and beginning from a newly calculated start based 
+on permanently fixed productivity levels. 
+
+This led to rapid (usually instant) convergence to new outer loop estimates, but little indication of 
+convergence over time periods. Investigation indicated that some of this may have been due to deterioration 
+of tools used with the increased variable size (notably, with variables >2GB in size requiring different 
+memory allocation): first sparse methods and then basic BLAS *GEMM were shown to result in incorrect 
+matrix multiplication (notably leaving many--and in the case of sparse, an impossible pattern of--incorrect 0s 
+in continuation value calculations). This was corrected (and accelerated) by exploiting the structure of the 
+relevant matrices, and the output of that specific operation confirmed as (at least for initial columns) accurate. 
+
+Figures for basic method:
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{meanDiff.png}\includegraphics[width=.5\textwidth]{maxDiff.png}
+\end{figure}
+Console output for setting with trailing average:
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{_consoleOutput.png}
+
+First line is maximum update distance relative to previous estimate (middle two output groups vertically, numbers in upper left 1 and 2) or previous period values (first and last, numbers 500 and 501), in order: Deposit rate, asset price, bank net worth, household consumption, recovery ratio, default probability. Third line is the same for average values.
+\end{figure}
+
+
+However, thus far period by period update sizes have not substantially improved: with the basic method 
+of setting the new future value to the converged estimate, maximum and average update sizes remain 
+generally in the neighborhood of $1.0-2.0^{-1}$ and mid-upper $10^{-3}$, respectively, or with instead setting the future values to the 50-period 
+trailing average of estimates the estimate differences around half that. 
+
+
+
+Looking at the time path of specific variable values shows a similar picture: asset price, for example, 
+is relatively stable in the default state (oscillations of order 250bp against price levels of order 1) 
+compared to the recovery state, the first state when bankers reenter after a bank run, (oscillations 
+of order 1000bp against price levels of order 1). In both cases, the price series line up as expected, 
+with higher prices the higher productivity levels are, and the average prices for each productivity level 
+are higher in the recovery state than the run state, likewise as expected. However, there is a major reversal 
+from all previous results, in that prices are substantially higher: a representative fixed point case close to the long-run
+states in the GK paper (bank holds ~72\% of capital, funded with 0.68 debt) has a price of 1.0658 compared 
+to the calibrated steady state cost of 1, and all prices are likewise shifted up relative to even perfect 
+foresight paths, where I would expect that rather prices should be lower due to the possibility of 
+adverse productivity shocks and (where applicable) potential bank runs. Since this is a new and surprising outcome 
+compared to all previous trials, I would want to confirm that no other size-induced bugs are present before 
+treating it as reliable.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{Qrun.png}\includegraphics[width=.5\textwidth]{Qrecov.png}
+\end{figure}
+
+Traces of other variables demonstrate the high variance as well, in even more dramatic form: take, 
+for example, the deposit rate in the recovery state, which not only shows no meaningful trend in level or 
+dispersion, but shows little relation between productivity and interest rate, with all levels overlapping 
+at random. The same is true of the expectation of the bank's net worth next period (closely related to 
+that period's contribution to the state's value to the bank), conditioned on its chosen policy. There is 
+a clear sense that there is not in general a high probability of default directly following a recovery, but 
+that is all that is consistent.
+
+\begin{figure}[H]
+\centering
+		\includegraphics[width=.5\textwidth]{Rrecov.png}\includegraphics[width=.5\textwidth]{ENrecov.png}
+\end{figure}
+
+\section{GK Solution: Next Steps}
+Besides making sure new behavior is not caused by new bugs, there are a few possible lines of action 
+that have not yet been explored yet. I have not yet tried increasing the fineness of the productivity 
+state variable and transition matrix; allowing smaller gradations there (currently the spacing is at +/-14\%
+ and +/- 7\% from the neutral level) and a smoother transition function could be useful where additional 
+capital or debt levels may be seeing diminishing returns, especially relative to computational constraints. 
+There is room yet for expansion of the state space, and adding productivity levels increases the size 
+only linearly rather than quadratically (the largest components in working memory, as opposed to I/O, 
+are the size of the number of no-run states times the number of policies in principle available, 
+$numZ*(numKb*numRD)^2$). 
+
+More runtime on its own could conceivably help as well; the input value is based on a guess and only 
+slowly updates. Leaving aside state transitions, 100 time periods only reduces a period's contribution 
+by about 2/3, but this would be worthwhile mainly after confirming the step by step process is working as 
+intended.
+
+Applying some sort of damping on the outer loop besides the 50-period moving average is unlikely to 
+help, as I have tried that before in alternative solution methods. 
+
+\section{Other Projects}
+Active work on potential new projects has been very limited. However, through the paper presentation of 
+July 22, I have identified a possible direction, but without details well worked out yet. This would be work as described in a previous meeting 
+relating to how much currencies are used as reserves, in a similar space to "Banks, Trade, and Dominant Currencies," 
+focused more directly on central banks, governments, and local financial systems. 
+
+\end{document}                          
