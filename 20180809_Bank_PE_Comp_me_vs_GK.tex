@@ -1,0 +1,126 @@
+\documentclass[english]{article}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{babel}
+\usepackage{float}
+\begin{document}
+\begin{verbatim}
+TO:        Robert G. King
+FROM:      Luke Zinnen
+DATE:      07 Nov, 2018
+SUBJECT:  GK Steady State with Idiosyncratic Productivities -- Probability Structure
+\end{verbatim}
+
+\section{Overview}
+This discusses the probability structure used in my analysis of the steady-state of a GK extension in 
+which there is a continuum of banks which receive different productivity levels each period, and make 
+maximizing decisions conditional on their own transition probabilities. It covers the structure I have 
+been using, conjectures regarding what will be necessary to keep it well behaved while scaling it up, 
+and ends with a brief section concerning how the incentive compatibility constraint affects other features of the parameterization and 
+equilibrium.
+
+\section{The Structure Used So Far}
+I have used two levels of productivity with transition probabilities as follows: there is a $\gamma$ 
+probability of remaining at the same level, and a $(1-\gamma)$ probability of drawing a new level, which 
+will be the high state with probability $p^h$. 
+
+I chose this structure because the analytical investigation indicated that problems in finding equilibria 
+arise mainly due to characteristics of the highest state: it is there that the potential for infinite-valued 
+banks arises (or rather, for a probability structure in which the probability of being in higher states next period does not 
+decrease with the level of the current state, the highest state will be the first to become explosively valued). 
+
+Similarly, only one low-level state is necessary to allow defaults and interbank lending to take place. 
+
+To begin, I choose an average level of the productivity of the capital in the economy, because jointly 
+raising the whole productivity distribution (along with parameters I'd prefer to keep roughly constant 
+relative to productivity: household capital management cost and endowments) would have no effect apart 
+from increasing the price of capital by the same factor. Following GK, I choose approx. 0.0126. I then choose the fraction by which the high 
+state's productivity should exceed the average and a probability of selecting the high state in the 
+$(1-\gamma)$ fraction that a bank does not remain in its previous state. These two choices pin down 
+the productivity level and probability of drawing the low state: higher productivity in the high state 
+pushes down productivity in the low state, as does higher probability of the high state. $\gamma$, the 
+autocorrelation of productivity, is independent of the other choices.
+
+The equilibria of interest feature default when a bank transitions from high to low productivity. This 
+requires that the rate of return on assets in the low state be insufficient to pay deposits: 
+$\phi*(Z^l + Q)/Q < R^h*(\phi^h - 1)$, where $h$ denotes levels associated with high states and 
+$l$ low states, $Z$ the productivity level, $Q$ the asset price, $R$ the deposit rate, and $\phi$ the 
+leverage of the bank, $(\phi - 1)$ thus the fraction of bank assets funded by deposits. 
+
+Consider initially the case of $Z^l=0$, or the net rate of return in the low state being 1. Then for 
+a bank to exactly 0 equity (and thus not push up the rate on deposits) when the rate of time preference is $\beta = 0.99$, its leverage would have 
+to be approximately 100. Increasing leverage from there results in losses and pushes up $R$, but 
+relatively slowly, as it is linked to the probability of having a high to low transition. Likewise, 
+even with infinite leverage the gross rate of return on deposits would be 1, so absent a very high 
+(greater than 0.5) probability of the high to low transition, the interest rate would remain low, under 
+about 1.0202 (which if taken as granted would require leverage of near 50 to result in default in the 
+first place). Besides not wanting to calibrate to such high leverage, steady state leverage this high 
+will imply very high market to book values of banks for reasonable loan spreads (GK calibrated to 0.0010): 
+
+$\psi_h = [(spread_{hh})*\phi_h + R_h](1-\sigma+\sigma*\psi_h)[\gamma + (1-\gamma)(1-p_h)]$
+
+and if $[(spread_{hh})*\phi_h + R_h]*[\gamma + (1-\gamma)(1-p_h)] > 1$ the value will be infinite as 
+can be seen by an iterative process up updating $\psi$ holding the rest constant. With $\phi$ of 100, $R_h$ 
+assumed still 1.01, and taking the GK spread as a low estimate of the spread given higher than average 
+physical return per unit of assets, $[\gamma + (1-\gamma)(1-p_h)]$ must be under about 0.5, implying 
+even with complete mean reversion ($\gamma = 0$) the physical return on capital in the high state has 
+to be over 2 times the average to generate even as little as 0 net return in the bad state. 
+
+Simply put, you can't get default in steady state without unreasonably high leverage unless there are 
+actual losses in bad states, and even this level of productivity in the low state requires very high probability 
+or very high productivity in the high state.
+
+A sufficiently negative net return in the low state reduces the required leverage for default, but requires 
+either raising the productivity of the high state or increasing its probability. With full mean reversion, this 
+is not an insurmountable problem, as inspection has shown that $\gamma = 0$ with sufficiently high probability in the high state 
+(0.99) and level of the high state ( > 0.66 times the average) gives results with the appropriate default structure  
+and steady state aggregates comparable to GK. 
+
+Moving away from IID, however, introduces parameterizations in which no equilibrium is found at all 
+that conforms to a default structure desired, though sufficiently extreme parameterizations likewise can be found 
+which will result in the desired survival outcomes, which have higher leverage, total capital held by banks, and price of capital.
+
+What should be noted here is the high concentration at the high end required to get bad enough low states 
+to generate defaults. There isn't much scope to make a richer distribution of states that have meaningful mass 
+without spreading the high state. However, maintaining the average productivity means filling out the 
+region between the two points requires increasing the productivity of some portion of the high distribution. 
+If expected future productivity strictly increases with current productivity, then an increasing spread on loans 
+on the highest end (which also loosens the leverage constraint) can be destabilizing, as behavior is dominated by 
+the most extreme state. This will require not only the potential to fall to a somewhat less high state, but 
+also larger expected losses in default.
+
+For this reason, I believe that for a probability structure with significant persistence and a full 
+support from lowest state to highest, a highly asymmetrical distribution is necessary with a long 
+left tail and most of the probability mass close to the average.
+
+\section{Effects of the IC Constraint on Equilibrium}
+The IC constraint, $\theta\phi\leq\psi$ governs the degree of leverage a bank in a given state operates with.
+As $\theta$ falls, leverage $\phi$ is allowed to increase, which in expectation also increases the market 
+to book ratio of the bank $\psi$. The increased leverage at the bank will push up the amount of capital 
+operated by banks collectively, and by the household's first order condition for capital push up the price 
+of capital, reducing the loan spreads available to banks at all productivity levels, a general equilibrium force 
+opposing the tendency of higher allowed leverage to increase $\psi$s. Likewise, the increase in 
+leverage (weakly) increases expected losses on deposits, pushing up interest rates paid on deposits, reducing
+the lending spread from the other end, and thus mitigates the increase in $\psi$ as well. 
+
+An increase in bank system leverage could be accommodated without increasing the amount of capital operated 
+by banks through increasing the rate of banker exit and/or reducing the endowment of new bankers.
+
+A more weakly binding IC constraint is expected to increase the degree to which the highest productivity 
+banks dominate an equilibrium with many productivity levels and persistence. This is because higher 
+amounts of bank capital operated drive down returns and spreads for all banks, resulting in the cutoff 
+point between which a bank prefers to invest in capital itself rather than lend in the interbank market 
+to shift to a higher productivity level.
+
+
+
+
+
+
+
+\end{document}                          
